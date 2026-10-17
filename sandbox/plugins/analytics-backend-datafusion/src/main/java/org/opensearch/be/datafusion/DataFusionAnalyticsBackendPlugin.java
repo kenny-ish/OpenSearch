@@ -497,6 +497,11 @@ public class DataFusionAnalyticsBackendPlugin implements AnalyticsSearchBackendP
         AggregateFunction.ARG_MAX
     );
 
+    private static final Set<AggregateFunction> ARRAY_AGG_FUNCTIONS = Set.of(
+        AggregateFunction.LIST,
+        AggregateFunction.VALUES
+    );
+
     private final DataFusionPlugin plugin;
 
     public DataFusionAnalyticsBackendPlugin(DataFusionPlugin plugin) {
@@ -661,6 +666,11 @@ public class DataFusionAnalyticsBackendPlugin implements AnalyticsSearchBackendP
                         // AggregateFunction.Type (SIMPLE, APPROXIMATE, ...), unlike the
                         // per-type factory methods which assert on Type.
                         caps.add(new AggregateCapability(func, Set.of(type), formats));
+                    }
+                    if (ARRAY_AGG_FUNCTIONS.contains(func)) {
+                        // LIST-valued fields are represented as ARRAY in the planner. These
+                        // aggregates flatten the elements before the normal list reducer runs.
+                        caps.add(new AggregateCapability(func, Set.of(FieldType.ARRAY), formats));
                     }
                 }
                 return Set.copyOf(caps);

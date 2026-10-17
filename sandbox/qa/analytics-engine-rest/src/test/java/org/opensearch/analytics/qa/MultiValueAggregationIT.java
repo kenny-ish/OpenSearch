@@ -167,23 +167,20 @@ public class MultiValueAggregationIT extends MultiValueRestTestCase {
         }
     }
 
-    // ---- known gaps: LIST-valued aggregate inputs -------------------------------------------
+    // ---- LIST-valued aggregate inputs -------------------------------------------------------
 
-    @AwaitsFix(bugUrl = LIST_VALUES_OVER_LIST_ISSUE)
     public void testListAggregateOverListFieldFlattens() throws Exception {
         Map<String, Object> result = executePpl("source = " + ONE_SHARD_INDEX + " | stats list(tags) as all_tags");
         List<String> all = strings(rows(result).get(0).get(column(result, "all_tags")));
         assertEquals(sorted(List.of("blue", "blue", "red", "red", "green", "blue", UNICODE_A, UNICODE_B)), sorted(all));
     }
 
-    @AwaitsFix(bugUrl = LIST_VALUES_OVER_LIST_ISSUE)
     public void testValuesAggregateOverListFieldIsDistinct() throws Exception {
         Map<String, Object> result = executePpl("source = " + ONE_SHARD_INDEX + " | stats values(tags) as distinct_tags");
         List<String> distinct = strings(rows(result).get(0).get(column(result, "distinct_tags")));
         assertEquals(sorted(List.of("blue", "red", "green", UNICODE_A, UNICODE_B)), sorted(distinct));
     }
 
-    @AwaitsFix(bugUrl = LIST_VALUES_OVER_LIST_ISSUE)
     public void testListAggregateGroupedByScalar() throws Exception {
         Map<String, Object> result = executePpl("source = " + ONE_SHARD_INDEX + " | stats list(tags) as region_tags by region");
         int keyColumn = column(result, "region");

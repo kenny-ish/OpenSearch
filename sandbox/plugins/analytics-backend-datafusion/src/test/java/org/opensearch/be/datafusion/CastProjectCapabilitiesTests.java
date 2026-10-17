@@ -8,6 +8,8 @@
 
 package org.opensearch.be.datafusion;
 
+import org.opensearch.analytics.spi.AggregateCapability;
+import org.opensearch.analytics.spi.AggregateFunction;
 import org.opensearch.analytics.spi.BackendCapabilityProvider;
 import org.opensearch.analytics.spi.FieldType;
 import org.opensearch.analytics.spi.ProjectCapability;
@@ -42,6 +44,17 @@ public class CastProjectCapabilitiesTests extends OpenSearchTestCase {
         return false;
     }
 
+    private boolean hasAggregateCapability(AggregateFunction function, FieldType fieldType) {
+        DataFusionAnalyticsBackendPlugin backendPlugin = new DataFusionAnalyticsBackendPlugin(new DataFusionPlugin());
+        BackendCapabilityProvider provider = backendPlugin.getCapabilityProvider();
+        for (AggregateCapability cap : provider.aggregateCapabilities()) {
+            if (cap.function().equals(function) && cap.fieldTypes().contains(fieldType)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public void testCastSupportsArrayReturnType() {
         assertTrue(
             "CAST must be registered for ARRAY return type to support implicit array casts",
@@ -67,6 +80,17 @@ public class CastProjectCapabilitiesTests extends OpenSearchTestCase {
         assertTrue(
             "SAFE_CAST must be registered for MAP return type to support nullable map casts",
             hasScalarCapability(ScalarFunction.SAFE_CAST, FieldType.MAP)
+        );
+    }
+
+    public void testListAggregatesSupportArrayInput() {
+        assertTrue(
+            "LIST must be registered for ARRAY input to support multi_value fields",
+            hasAggregateCapability(AggregateFunction.LIST, FieldType.ARRAY)
+        );
+        assertTrue(
+            "VALUES must be registered for ARRAY input to support multi_value fields",
+            hasAggregateCapability(AggregateFunction.VALUES, FieldType.ARRAY)
         );
     }
 }
